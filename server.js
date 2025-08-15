@@ -1,9 +1,10 @@
 const express = require("express");
 const mysql = require("mysql2");
 const fs = require("fs");
-require("dotenv").config();
-
+const cors = require("cors");
 const app = express();
+app.use(cors());
+require("dotenv").config();
 
 // Create a connection pool to the database
 const pool = mysql.createPool({
@@ -12,7 +13,7 @@ const pool = mysql.createPool({
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   port: process.env.MYSQL_PORT || 3306,
-  ssl: { ca: fs.readFileSync("./DigiCertGlobalRootCA.crt.pem") },
+  ssl: {ca: fs.readFileSync("./DigiCertGlobalRootCA.crt.pem")},
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -54,7 +55,7 @@ app.get("/oceania", (req, res) => {
 // Show information about a specific country by its name
 app.get("/country/:countryname", (req, res) => {
   console.log(`GET /country/${req.params.countryname} endpoint was hit 🎯`);
-  const { countryname } = req.params;
+  const {countryname} = req.params;
 
   const query = "SELECT * FROM country WHERE Name = ?";
   pool.execute(query, [countryname], (err, results) => {
@@ -69,9 +70,10 @@ app.get("/country/:countryname", (req, res) => {
 // Find the total population of a continent
 app.get("/population/:continent", (req, res) => {
   console.log(`GET /population/${req.params.continent} endpoint was hit 🎯`);
-  const { continent } = req.params;
+  const {continent} = req.params;
 
-  const query = "SELECT SUM(Population) AS total_population FROM country WHERE Continent = ?";
+  const query =
+    "SELECT SUM(Population) AS total_population FROM country WHERE Continent = ?";
   pool.execute(query, [continent], (err, results) => {
     if (err) {
       console.error(`Error fetching population for ${continent}:`, err);
@@ -91,12 +93,14 @@ app.get("/population/:continent", (req, res) => {
  */
 const PORT = process.env.PORT || 4000;
 
-app.listen(PORT, () => {
-  console.log(`Server is live at http://localhost:${PORT}`);
-}).on("error", (error) => {
-  if (error.code === "EADDRINUSE") {
-    console.error("Port is already in use");
-  } else {
-    console.error("Server Error:", error);
-  }
-});
+app
+  .listen(PORT, () => {
+    console.log(`Server is live at http://localhost:${PORT}`);
+  })
+  .on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error("Port is already in use");
+    } else {
+      console.error("Server Error:", error);
+    }
+  });
